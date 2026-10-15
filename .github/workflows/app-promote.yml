@@ -1,0 +1,65 @@
+# Juniper Mutual's promotion, called by every app repository. A package moves one stage
+# at a time, in order: dev, sit, uat, staging, prod. perf is not on the path: it is built
+# from what is in staging, for a load test, and never promoted from.
+#
+# Each stage is a GitHub environment of the same name. staging and prod need a platform
+# team approval (set on the environment), and prod also needs a change ticket that is
+# approved in the change tool before the job runs.
+name: app-promote
+
+on:
+  workflow_call:
+    inputs:
+      to-stage:
+        description: The stage to promote to.
+        type: string
+        required: true
+      package-sha256:
+        description: The package, by the checksum the build gave it.
+        type: string
+        required: true
+      change-ticket:
+        description: The approved change ticket. Required for prod.
+        type: string
+        default: ""
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: The stage comes next, and prod has its ticket
+        env:
+          TO: ${{ inputs.to-stage }}
+          TICKET: ${{ inputs.change-ticket }}
+        run: |
+          case "$TO" in
+            sit|uat|staging|prod) ;;
+            dev) echo "::error::dev is built by the developer, not promoted to"; exit 1 ;;
+            perf) echo "::error::perf is built from staging for a load test, never promoted to"; exit 1 ;;
+            *) echo "::error::$TO is not a stage"; exit 1 ;;
+          esac
+          if [ "$TO" = "prod" ] && ! printf '%s' "$TICKET" | grep -Eq '^CHG[0-9]{7}$'; then
+            echo "::error::prod needs an approved change ticket, CHG followed by seven digits"
+            exit 1
+          fi
+
+  promote:
+    needs: check
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.to-stage }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: package-${{ inputs.package-sha256 }}
+      - name: The package is the one that was built
+        env:
+          WANT: ${{ inputs.package-sha256 }}
+        run: |
+          echo "$WANT  package.zip" | sha256sum -c -
+      - name: Apply the stage
+        env:
+          TO: ${{ inputs.to-stage }}
+        run: |
+          # Each stage has its own root module and its own state, in the stage's own
+          # account; the app repository keeps them under stages/<stage>/.
+          echo "terraform -chdir=stages/$TO apply, with the package above"
