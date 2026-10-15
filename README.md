@@ -24,6 +24,7 @@ and promoted with. App teams build from these and nothing else.
 | `secrets` | Secrets an app reads while it runs |
 | `logs-and-alarms` | Every app's logs and alarms |
 | `cache-redis` | **Deprecated**: not for new apps |
+| `cache-valkey` | A cache |
 
 Each module's README says when to use it, what changes from stage to stage, and its
 inputs. Read them: some rules are written only there.
