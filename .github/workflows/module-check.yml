@@ -1,0 +1,44 @@
+# The library's own check: every module is formatted and valid Terraform. It runs on
+# every push and pull request to this repository. App teams never call it.
+name: module-check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  modules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+      - name: Formatted
+        run: |
+          if ! terraform fmt -check -recursive -diff modules; then
+            echo "::error::A module is not formatted: run terraform fmt -recursive modules"
+            exit 1
+          fi
+      - name: Valid
+        run: |
+          failed=0
+          valid=""
+          for dir in modules/*/; do
+            name=$(basename "$dir")
+            if ! out=$(cd "$dir" && terraform init -backend=false -input=false -no-color 2>&1 && terraform validate -no-color 2>&1); then
+              failed=1
+              # One annotation per module, so the result can be read without the log.
+              summary=$(printf '%s' "$out" | grep -E 'Error|error' | head -5 | tr '\n' ' ')
+              echo "::error title=${name} is not valid::${summary}"
+            else
+              valid="$valid $name"
+            fi
+          done
+          # One note for every module that passed: GitHub keeps only ten notes a step.
+          echo "::notice title=valid::$(printf '%s' "$valid" | wc -w | tr -d ' ') modules valid:$valid"
+          exit $failed

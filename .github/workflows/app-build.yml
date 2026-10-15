@@ -1,0 +1,40 @@
+# Juniper Mutual's build, called by every app repository. It builds the app's package
+# once. The same package, by its checksum, is what every later stage runs: nothing is
+# built again on the way to production.
+name: app-build
+
+on:
+  workflow_call:
+    inputs:
+      app-path:
+        description: The app's folder in the calling repository.
+        type: string
+        default: "."
+    outputs:
+      package-sha256:
+        description: The package's checksum, which every promotion names.
+        value: ${{ jobs.build.outputs.sha256 }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      sha256: ${{ steps.pack.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Package
+        id: pack
+        working-directory: ${{ inputs.app-path }}
+        run: |
+          npm ci --omit=dev
+          zip -qr "$RUNNER_TEMP/package.zip" . -x '.git/*'
+          sha=$(sha256sum "$RUNNER_TEMP/package.zip" | cut -d' ' -f1)
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ steps.pack.outputs.sha256 }}
+          path: ${{ runner.temp }}/package.zip
+          retention-days: 90
