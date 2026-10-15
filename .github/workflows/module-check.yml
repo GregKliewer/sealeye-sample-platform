@@ -27,6 +27,7 @@ jobs:
       - name: Valid
         run: |
           failed=0
+          valid=""
           for dir in modules/*/; do
             name=$(basename "$dir")
             if ! out=$(cd "$dir" && terraform init -backend=false -input=false -no-color 2>&1 && terraform validate -no-color 2>&1); then
@@ -35,7 +36,9 @@ jobs:
               summary=$(printf '%s' "$out" | grep -E 'Error|error' | head -5 | tr '\n' ' ')
               echo "::error title=${name} is not valid::${summary}"
             else
-              echo "::notice title=${name}::valid"
+              valid="$valid $name"
             fi
           done
+          # One note for every module that passed: GitHub keeps only ten notes a step.
+          echo "::notice title=valid::$(printf '%s' "$valid" | wc -w | tr -d ' ') modules valid:$valid"
           exit $failed
