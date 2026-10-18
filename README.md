@@ -29,6 +29,21 @@ and promoted with. App teams build from these and nothing else.
 Each module's README says when to use it, what changes from stage to stage, and its
 inputs. Read them: some rules are written only there.
 
+## Versions
+
+Each module is released on its own, as a tag named after it: `http-api/v1.1.0`. App
+teams use a module at a released tag, never at a branch. Each module's `CHANGELOG.md`
+says what changed in each release; a major version changes what the module takes or
+gives.
+
+## Connecting modules
+
+A data module (`document-table`, `file-bucket`, `work-queue`, `postgres`) offers what an
+app needs to use it as outputs: `access_policy_arn`, a narrower policy beside it, and
+for a database its `password_secret_arn`. An app module takes them in `policy_arns` and
+`secret_arns`, and what the app looks each one up by in `environment`. `http-api`'s
+README shows it. A root module only passes outputs to inputs; it never writes a policy.
+
 There is nothing yet for a stream of events, for signing in an app's own users, or for
 work that runs on a schedule. Ask in the platform channel.
 

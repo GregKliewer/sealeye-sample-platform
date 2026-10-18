@@ -40,3 +40,39 @@ resource "aws_s3_bucket_versioning" "files" {
     status = local.upper_stage ? "Enabled" : "Suspended"
   }
 }
+
+# What an app needs to use the bucket, as policies the app's module attaches to the
+# app's role (its policy_arns input).
+data "aws_iam_policy_document" "read_write" {
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.files.arn]
+  }
+  statement {
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.files.arn}/*"]
+  }
+}
+
+data "aws_iam_policy_document" "read_only" {
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.files.arn]
+  }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.files.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "read_write" {
+  name   = "${local.full_name}-files-read-write"
+  policy = data.aws_iam_policy_document.read_write.json
+  tags   = local.tags
+}
+
+resource "aws_iam_policy" "read_only" {
+  name   = "${local.full_name}-files-read-only"
+  policy = data.aws_iam_policy_document.read_only.json
+  tags   = local.tags
+}

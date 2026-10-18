@@ -21,3 +21,7 @@ Messages wait four days below staging and two weeks from staging up.
 | `name` | The app's name | required |
 | `stage` | dev, sit, uat, staging, perf or prod | required |
 | `max_receives` | Tries before a message goes to the failed queue | `5` |
+
+## Using it from an app
+
+Pass `access_policy_arn` in the app module's `policy_arns`, and what the app looks it up by in its `environment` (see `http-api`'s README). Each data module offers a narrower policy beside it.
