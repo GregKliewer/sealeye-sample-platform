@@ -39,10 +39,12 @@ gives.
 ## Connecting modules
 
 A data module (`document-table`, `file-bucket`, `work-queue`, `postgres`) offers what an
-app needs to use it as outputs: `access_policy_arn`, a narrower policy beside it, and
-for a database its `password_secret_arn`. An app module takes them in `policy_arns` and
-`secret_arns`, and what the app looks each one up by in `environment`. `http-api`'s
-README shows it. A root module only passes outputs to inputs; it never writes a policy.
+app needs to use it as outputs: `access_policy_arn`, and a narrower policy beside it.
+An app module takes them in `policy_arns`, and what the app looks each one up by in
+`environment`. A database is reached in the private network, so the app module joins it
+(`subnet_ids`, `security_group_ids`), and the app signs in with its own identity, never a
+password: `postgres`'s README shows how. `http-api`'s README shows the wiring. A root
+module only passes outputs to inputs; it never writes a policy.
 
 There is nothing yet for a stream of events, for signing in an app's own users, or for
 work that runs on a schedule. Ask in the platform channel.

@@ -32,6 +32,8 @@ Logs are kept for a week in dev, sit and uat, and for a year from staging up.
 | `permissions_boundary_arn` | The platform's permissions boundary | required |
 | `policy_arns` | What the app may read and write: each data module's `access_policy_arn` | `[]` |
 | `secret_arns` | Secrets the app may read while it runs | `[]` |
+| `subnet_ids` | The stage's private subnets, only when the app uses a database | `[]` |
+| `security_group_ids` | The stage's apps security group, given with `subnet_ids` | `[]` |
 
 ## Using a table, bucket or queue
 
@@ -60,3 +62,16 @@ module "api" {
 
 Never write a policy for an app by hand: if a module does not offer what the app needs,
 ask in the platform channel.
+
+## Using a database
+
+A database lives in the private network, so an app that uses one joins that network: pass
+the stage's private subnets as `subnet_ids` and the stage's apps security group as
+`security_group_ids`, both published in the platform channel. Every database admits the
+apps group. Leave both empty for an app that uses no database: outside the network the
+app starts faster and needs nothing from it.
+
+The database offers the rest the same way as a table does: its `access_policy_arn` in
+`policy_arns`, and its `address`, `port`, `database_name` and `database_user` in
+`environment`. The app signs in with its own identity; `postgres`'s README shows how.
+Never pass a database's `password_secret_arn` to an app.

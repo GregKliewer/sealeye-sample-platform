@@ -1,5 +1,6 @@
-# The library's own check: every module is formatted and valid Terraform. It runs on
-# every push and pull request to this repository. App teams never call it.
+# The library's own check: every module is formatted and valid Terraform, and the
+# package the postgres module's setup function runs is the one its source builds. It
+# runs on every push and pull request to this repository. App teams never call it.
 name: module-check
 
 on:
@@ -18,6 +19,13 @@ jobs:
         with:
           terraform_version: "1.9.8"
           terraform_wrapper: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # The postgres module names the package its setup function runs, so it is built
+      # before the module is validated. Whether the committed one matches is checked below.
+      - name: Build the postgres setup package
+        run: sh modules/postgres/setup/build.sh
       - name: Formatted
         run: |
           if ! terraform fmt -check -recursive -diff modules; then
@@ -42,3 +50,25 @@ jobs:
           # One note for every module that passed: GitHub keeps only ten notes a step.
           echo "::notice title=valid::$(printf '%s' "$valid" | wc -w | tr -d ' ') modules valid:$valid"
           exit $failed
+
+  postgres-setup-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Built from its source
+        run: |
+          if [ ! -f modules/postgres/setup/setup.zip ]; then
+            echo "::error title=postgres setup package is missing::Run modules/postgres/setup/build.sh and commit setup.zip"
+            exit 1
+          fi
+          before=$(sha256sum modules/postgres/setup/setup.zip | cut -d' ' -f1)
+          sh modules/postgres/setup/build.sh
+          after=$(sha256sum modules/postgres/setup/setup.zip | cut -d' ' -f1)
+          if [ "$before" != "$after" ]; then
+            echo "::error title=postgres setup package is stale::setup.zip is not what setup/src builds: run modules/postgres/setup/build.sh and commit it"
+            exit 1
+          fi
+          echo "::notice title=postgres setup package::setup.zip is what its source builds ($after)"

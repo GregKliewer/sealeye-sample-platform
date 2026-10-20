@@ -57,3 +57,15 @@ variable "secret_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "subnet_ids" {
+  description = "The stage's private subnets, only when the app uses something in the private network, such as a database. Empty: the app runs outside the network."
+  type        = list(string)
+  default     = []
+}
+
+variable "security_group_ids" {
+  description = "The stage's apps security group, which the databases admit; given with subnet_ids, and empty with it."
+  type        = list(string)
+  default     = []
+}
