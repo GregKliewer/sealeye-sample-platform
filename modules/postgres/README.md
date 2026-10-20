@@ -27,7 +27,7 @@ The same everywhere it is allowed: one instance, one day of backups.
 | `stage` | dev, sit or uat | required |
 | `subnet_group_name` | The stage's database subnet group | required |
 | `security_group_ids` | Who may connect | required |
-| `instance_class` | The instance size | `db.t4g.micro` |
+| `instance_class` | The instance size; the smallest has too little memory for signing in | `db.t4g.small` |
 | `permissions_boundary_arn` | The platform's permissions boundary, for the setup function | `null` |
 | `master_password` | Leave unset: the platform makes and keeps it | `null` |
 

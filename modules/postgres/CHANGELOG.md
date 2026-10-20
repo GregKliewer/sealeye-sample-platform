@@ -2,6 +2,12 @@
 
 Released as `postgres/v<version>` tags. A major version changes what the module takes or gives; read its entry before moving an app to it.
 
+## 1.2.1
+
+- The default `instance_class` is `db.t4g.small`: signing in with the app's own identity
+  takes a few hundred megabytes of memory on the database, which the smallest size
+  cannot spare. A database already standing is resized in place on its next apply.
+
 ## 1.2.0
 
 - The app signs in with its own identity (IAM database authentication), as a user of its
