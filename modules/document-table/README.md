@@ -21,3 +21,7 @@ protected against deletion. Below staging it is neither.
 | `name` | The app's name | required |
 | `stage` | dev, sit, uat, staging, perf or prod | required |
 | `key` | The attribute each document is found by | `id` |
+
+## Using it from an app
+
+Pass `access_policy_arn` in the app module's `policy_arns`, and what the app looks it up by in its `environment` (see `http-api`'s README). Each data module offers a narrower policy beside it.

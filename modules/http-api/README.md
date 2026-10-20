@@ -30,3 +30,33 @@ Logs are kept for a week in dev, sit and uat, and for a year from staging up.
 | `handler` | The function the platform calls | `index.handler` |
 | `environment` | Settings the app reads, names to values | `{}` |
 | `permissions_boundary_arn` | The platform's permissions boundary | required |
+| `policy_arns` | What the app may read and write: each data module's `access_policy_arn` | `[]` |
+| `secret_arns` | Secrets the app may read while it runs | `[]` |
+
+## Using a table, bucket or queue
+
+Every data module in this library offers what an app needs to use it as an output,
+`access_policy_arn` (and a narrower one beside it, such as `read_only_policy_arn`). Pass
+it in `policy_arns`, and pass what the app looks the resource up by (`table_name`,
+`bucket_name`, `queue_url`) in `environment`, under the name the app reads:
+
+```hcl
+module "orders" {
+  source = "../document-table"
+  name   = "orders"
+  stage  = "dev"
+}
+
+module "api" {
+  source                   = "../http-api"
+  name                     = "orders"
+  stage                    = "dev"
+  package_path             = "app.zip"
+  permissions_boundary_arn = var.permissions_boundary_arn
+  policy_arns              = [module.orders.access_policy_arn]
+  environment              = { ORDERS_TABLE = module.orders.table_name }
+}
+```
+
+Never write a policy for an app by hand: if a module does not offer what the app needs,
+ask in the platform channel.

@@ -45,3 +45,15 @@ variable "permissions_boundary_arn" {
   description = "The platform's permissions boundary, which every function at Juniper Mutual carries."
   type        = string
 }
+
+variable "policy_arns" {
+  description = "Policies the app's role is given: what it reads and writes, from each module's access_policy_arn output. Never a policy written by hand."
+  type        = list(string)
+  default     = []
+}
+
+variable "secret_arns" {
+  description = "Secrets the app may read while it runs, from the secrets module or a database's password_secret_arn."
+  type        = list(string)
+  default     = []
+}

@@ -28,3 +28,34 @@ resource "aws_sqs_queue" "work" {
     maxReceiveCount     = var.max_receives
   })
 }
+
+# What an app needs to use the queue, as policies the app's module attaches to the app's
+# role (its policy_arns input).
+data "aws_iam_policy_document" "send_receive" {
+  statement {
+    actions = [
+      "sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage",
+      "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl",
+    ]
+    resources = [aws_sqs_queue.work.arn]
+  }
+}
+
+data "aws_iam_policy_document" "send_only" {
+  statement {
+    actions   = ["sqs:SendMessage", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"]
+    resources = [aws_sqs_queue.work.arn]
+  }
+}
+
+resource "aws_iam_policy" "send_receive" {
+  name   = "${local.full_name}-queue-send-receive"
+  policy = data.aws_iam_policy_document.send_receive.json
+  tags   = local.tags
+}
+
+resource "aws_iam_policy" "send_only" {
+  name   = "${local.full_name}-queue-send"
+  policy = data.aws_iam_policy_document.send_only.json
+  tags   = local.tags
+}

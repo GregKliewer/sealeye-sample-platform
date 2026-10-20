@@ -30,3 +30,35 @@ resource "aws_dynamodb_table" "table" {
     enabled = true
   }
 }
+
+# What an app needs to use the table, as policies the app's module attaches to the app's
+# role (its policy_arns input). Nothing outside the library writes a grant.
+data "aws_iam_policy_document" "read_write" {
+  statement {
+    actions = [
+      "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:Scan",
+      "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem",
+      "dynamodb:BatchWriteItem", "dynamodb:ConditionCheckItem", "dynamodb:DescribeTable",
+    ]
+    resources = [aws_dynamodb_table.table.arn, "${aws_dynamodb_table.table.arn}/index/*"]
+  }
+}
+
+data "aws_iam_policy_document" "read_only" {
+  statement {
+    actions   = ["dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:DescribeTable"]
+    resources = [aws_dynamodb_table.table.arn, "${aws_dynamodb_table.table.arn}/index/*"]
+  }
+}
+
+resource "aws_iam_policy" "read_write" {
+  name   = "${local.full_name}-table-read-write"
+  policy = data.aws_iam_policy_document.read_write.json
+  tags   = local.tags
+}
+
+resource "aws_iam_policy" "read_only" {
+  name   = "${local.full_name}-table-read-only"
+  policy = data.aws_iam_policy_document.read_only.json
+  tags   = local.tags
+}

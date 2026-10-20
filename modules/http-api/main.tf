@@ -88,3 +88,26 @@ resource "aws_lambda_permission" "api" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
 }
+
+# What the app may read and write, as each module offers it (its access_policy_arn).
+resource "aws_iam_role_policy_attachment" "granted" {
+  count      = length(var.policy_arns)
+  role       = aws_iam_role.fn.name
+  policy_arn = var.policy_arns[count.index]
+}
+
+data "aws_iam_policy_document" "secrets" {
+  count = length(var.secret_arns) > 0 ? 1 : 0
+
+  statement {
+    actions   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+    resources = var.secret_arns
+  }
+}
+
+resource "aws_iam_role_policy" "secrets" {
+  count  = length(var.secret_arns) > 0 ? 1 : 0
+  name   = "read-secrets"
+  role   = aws_iam_role.fn.id
+  policy = data.aws_iam_policy_document.secrets[0].json
+}
