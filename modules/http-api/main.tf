@@ -33,6 +33,19 @@ resource "aws_iam_role_policy_attachment" "logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+# In the private network only when the app uses something that lives there, such as a
+# database: then the function joins the stage's private subnets and the apps group, and
+# its role may make the network interfaces that takes.
+locals {
+  in_network = length(var.subnet_ids) > 0
+}
+
+resource "aws_iam_role_policy_attachment" "network" {
+  count      = local.in_network ? 1 : 0
+  role       = aws_iam_role.fn.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
 resource "aws_cloudwatch_log_group" "fn" {
   name              = "/aws/lambda/${local.full_name}-api"
   retention_in_days = local.upper_stage ? 365 : 7
@@ -52,7 +65,16 @@ resource "aws_lambda_function" "fn" {
     variables = var.environment
   }
 
-  depends_on = [aws_cloudwatch_log_group.fn]
+  dynamic "vpc_config" {
+    for_each = local.in_network ? [1] : []
+
+    content {
+      subnet_ids         = var.subnet_ids
+      security_group_ids = var.security_group_ids
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.fn, aws_iam_role_policy_attachment.network]
 }
 
 resource "aws_apigatewayv2_api" "api" {
