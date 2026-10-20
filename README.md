@@ -2,7 +2,10 @@
 
 > **Made up.** Juniper Mutual is a fictional credit union. This repository is a test
 > library for [seaLeye](https://github.com/GregKliewer/sealeye): the modules are real
-> Terraform, but no organization runs them. Nothing here holds a real secret.
+> Terraform, but no organization runs them. Nothing here holds a real secret. The
+> password in `modules/postgres/examples/restore-from-snapshot/` and the variables file
+> beside it are planted for seaLeye's secret-scanner tests; they are made up and open
+> nothing, so there is nothing to report. MIT licensed (`LICENSE`, `NOTICE`).
 
 The modules Juniper Mutual's platform team trusts, and the pipeline every app is built
 and promoted with. App teams build from these and nothing else.

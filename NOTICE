@@ -1,0 +1,15 @@
+sealeye-sample-platform
+Copyright (C) 2026 OpMo Advisory Inc.
+
+Licensed under the MIT License (see LICENSE). Use, copy and change it freely.
+
+Made up. Juniper Mutual is a fictional credit union. No organization runs these
+modules, and nothing in this repository is drawn from any real organization's
+platform, code or conventions. The password in
+modules/postgres/examples/restore-from-snapshot/ and the variables file beside
+it are planted on purpose, for seaLeye's secret-scanner tests: they are made up
+and open nothing.
+
+Independence. This repository is developed and published by OpMo Advisory Inc.
+on its own time and equipment. It is not affiliated with, sponsored by or the
+property of any employer or client of its authors.
