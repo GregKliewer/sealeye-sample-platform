@@ -9,16 +9,18 @@ output "port" {
 }
 
 output "database_name" {
-  description = "The app's own database, made for it when the platform made the password."
-  value       = local.app_database
+  description = "The app's own database, made for it when the platform made the password; none when a password was given by hand."
+  value       = local.managed ? local.app_database : null
 }
 
 output "database_user" {
   description = "The user the app connects as, signing in with its own identity and no password."
-  value       = local.app_user
+  value       = local.managed ? local.app_user : null
 }
 
 output "access_policy_arn" {
+  # Only once the user it names exists.
+  depends_on  = [aws_lambda_invocation.setup]
   description = "Signs in as the app's user: pass it in the app's policy_arns."
   value       = aws_iam_policy.connect.arn
 }

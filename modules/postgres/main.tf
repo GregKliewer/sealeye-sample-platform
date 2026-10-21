@@ -42,8 +42,11 @@ resource "aws_db_instance" "db" {
   storage_encrypted                   = true
   backup_retention_period             = 1
   deletion_protection                 = false
-  skip_final_snapshot                 = true
-  tags                                = local.tags
+  # Below staging a change (the size, signing in) applies at once, not at the next
+  # maintenance window.
+  apply_immediately   = !local.upper_stage
+  skip_final_snapshot = true
+  tags                = local.tags
 }
 
 # What the app needs to sign in: the right to connect as its user with its own
@@ -73,6 +76,12 @@ resource "aws_security_group" "setup" {
   description = "The one-time database setup, which the database admits"
   vpc_id      = data.aws_db_subnet_group.stage.vpc_id
   tags        = local.tags
+
+  # The platform can hold the setup function's network interface for a while after the
+  # function is gone; the group waits for it rather than failing the tear-down.
+  timeouts {
+    delete = "40m"
+  }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "setup" {
@@ -172,5 +181,7 @@ resource "aws_lambda_invocation" "setup" {
     user       = local.app_user
   })
 
-  depends_on = [aws_iam_role_policy.setup_secret]
+  # It needs its group's rules in place before it runs: the way to the secrets endpoint
+  # and its admission to the database.
+  depends_on = [aws_iam_role_policy.setup_secret, aws_vpc_security_group_ingress_rule.setup, aws_vpc_security_group_egress_rule.setup]
 }
