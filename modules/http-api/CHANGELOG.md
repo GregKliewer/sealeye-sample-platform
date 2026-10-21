@@ -2,6 +2,10 @@
 
 Released as `http-api/v<version>` tags. A major version changes what the module takes or gives; read its entry before moving an app to it.
 
+## 1.2.1
+
+- `secret_arns` says it is never a database's master password. Nothing else changes.
+
 ## 1.2.0
 
 - Takes `subnet_ids` and `security_group_ids`, to run in the private network when the app

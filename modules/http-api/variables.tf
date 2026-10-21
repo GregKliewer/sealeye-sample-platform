@@ -53,7 +53,7 @@ variable "policy_arns" {
 }
 
 variable "secret_arns" {
-  description = "Secrets the app may read while it runs, from the secrets module or a database's password_secret_arn."
+  description = "Secrets the app may read while it runs, from the secrets module. Never a database's master password: an app signs in to its database with its own identity."
   type        = list(string)
   default     = []
 }
