@@ -35,9 +35,9 @@ variable "security_group_ids" {
 }
 
 variable "instance_class" {
-  description = "The instance size."
+  description = "The instance size. Signing in with the app's own identity takes memory on the database, so the smallest size is not enough for it."
   type        = string
-  default     = "db.t4g.micro"
+  default     = "db.t4g.small"
 }
 
 variable "master_password" {
