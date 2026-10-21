@@ -2,6 +2,16 @@
 
 Released as `postgres/v<version>` tags. A major version changes what the module takes or gives; read its entry before moving an app to it.
 
+## 1.2.2
+
+- The one-time setup waits for its group's rules before it runs, and its group waits
+  for the platform to let go of the setup function's network interface before it is
+  deleted, so a tear-down does not fail on it.
+- Below staging a change applies at once rather than at the next maintenance window:
+  turning on sign-in for a 1.1 database, or a new size, takes effect on the apply.
+- With a `master_password` given by hand no setup runs, and `database_name` and
+  `database_user` are then empty rather than naming a user that was never made.
+
 ## 1.2.1
 
 - The default `instance_class` is `db.t4g.small`: signing in with the app's own identity
