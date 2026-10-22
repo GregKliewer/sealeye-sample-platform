@@ -2,6 +2,13 @@
 
 Released as `http-api/v<version>` tags. A major version changes what the module takes or gives; read its entry before moving an app to it.
 
+## 1.3.0
+
+- The front door keeps a record of each request (what was asked, what it answered, how
+  long it took, and why it turned one away before it reached the app), and outputs
+  `access_log_group`, where it is kept. No caller's address is kept. Nothing it takes
+  changes.
+
 ## 1.2.3
 
 - Outputs `log_group`, where everything the app prints is kept, so the front door can

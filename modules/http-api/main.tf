@@ -102,11 +102,34 @@ resource "aws_apigatewayv2_route" "all" {
   target    = "integrations/${aws_apigatewayv2_integration.fn.id}"
 }
 
+# The front door's own record of each request: what was asked, what it answered and how
+# long it took, including requests it turned away before they reached the app. No
+# caller's address is kept.
+resource "aws_cloudwatch_log_group" "door" {
+  name              = "/aws/apigateway/${local.full_name}-api"
+  retention_in_days = local.upper_stage ? 365 : 7
+  tags              = local.tags
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.api.id
   name        = "$default"
   auto_deploy = true
   tags        = local.tags
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.door.arn
+    format = jsonencode({
+      requestId         = "$context.requestId"
+      method            = "$context.httpMethod"
+      path              = "$context.path"
+      status            = "$context.status"
+      latency           = "$context.responseLatency"
+      integrationStatus = "$context.integrationStatus"
+      integrationError  = "$context.integrationErrorMessage"
+      error             = "$context.error.message"
+    })
+  }
 }
 
 resource "aws_lambda_permission" "api" {
