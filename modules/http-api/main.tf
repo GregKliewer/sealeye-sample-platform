@@ -104,9 +104,10 @@ resource "aws_apigatewayv2_route" "all" {
 
 # The front door's own record of each request: what was asked, what it answered and how
 # long it took, including requests it turned away before they reached the app. No
-# caller's address is kept.
+# caller's address is kept. Under /aws/vendedlogs/, so the account's log resource
+# policy covers every app's record with one entry rather than growing with each.
 resource "aws_cloudwatch_log_group" "door" {
-  name              = "/aws/apigateway/${local.full_name}-api"
+  name              = "/aws/vendedlogs/apigateway/${local.full_name}-api"
   retention_in_days = local.upper_stage ? 365 : 7
   tags              = local.tags
 }
