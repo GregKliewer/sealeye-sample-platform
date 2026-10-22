@@ -1,5 +1,5 @@
 # The library's own check: every module is formatted and valid Terraform, and the
-# package the postgres module's setup function runs is the one its source builds. It
+# package each database module's setup function runs is the one its source builds. It
 # runs on every push and pull request to this repository. App teams never call it.
 name: module-check
 
@@ -22,10 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      # The postgres module names the package its setup function runs, so it is built
+      # The database modules name the package their setup function runs, so it is built
       # before the module is validated. Whether the committed one matches is checked below.
-      - name: Build the postgres setup package
-        run: sh modules/postgres/setup/build.sh
+      - name: Build the setup packages
+        run: |
+          sh modules/postgres/setup/build.sh
+          sh modules/postgres-cluster/setup/build.sh
       - name: Formatted
         run: |
           if ! terraform fmt -check -recursive -diff modules; then
@@ -51,8 +53,11 @@ jobs:
           echo "::notice title=valid::$(printf '%s' "$valid" | wc -w | tr -d ' ') modules valid:$valid"
           exit $failed
 
-  postgres-setup-package:
+  setup-packages:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [postgres, postgres-cluster]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,15 +65,15 @@ jobs:
           node-version: "20"
       - name: Built from its source
         run: |
-          if [ ! -f modules/postgres/setup/setup.zip ]; then
-            echo "::error title=postgres setup package is missing::Run modules/postgres/setup/build.sh and commit setup.zip"
+          if [ ! -f modules/${{ matrix.module }}/setup/setup.zip ]; then
+            echo "::error title=${{ matrix.module }} setup package is missing::Run modules/${{ matrix.module }}/setup/build.sh and commit setup.zip"
             exit 1
           fi
-          before=$(sha256sum modules/postgres/setup/setup.zip | cut -d' ' -f1)
-          sh modules/postgres/setup/build.sh
-          after=$(sha256sum modules/postgres/setup/setup.zip | cut -d' ' -f1)
+          before=$(sha256sum modules/${{ matrix.module }}/setup/setup.zip | cut -d' ' -f1)
+          sh modules/${{ matrix.module }}/setup/build.sh
+          after=$(sha256sum modules/${{ matrix.module }}/setup/setup.zip | cut -d' ' -f1)
           if [ "$before" != "$after" ]; then
-            echo "::error title=postgres setup package is stale::setup.zip is not what setup/src builds: run modules/postgres/setup/build.sh and commit it"
+            echo "::error title=${{ matrix.module }} setup package is stale::setup.zip is not what setup/src builds: run modules/${{ matrix.module }}/setup/build.sh and commit it"
             exit 1
           fi
-          echo "::notice title=postgres setup package::setup.zip is what its source builds ($after)"
+          echo "::notice title=${{ matrix.module }} setup package::setup.zip is what its source builds ($after)"
