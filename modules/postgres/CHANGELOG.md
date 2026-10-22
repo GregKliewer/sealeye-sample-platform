@@ -2,6 +2,13 @@
 
 Released as `postgres/v<version>` tags. A major version changes what the module takes or gives; read its entry before moving an app to it.
 
+## 1.3.0
+
+- The database keeps its own log (errors, refused sign-ins and queries that failed) and
+  its record of each sign-in with an app's own identity that it refused, and outputs
+  `log_group` and `sign_in_log_group`, where they are kept. A database already standing
+  starts keeping them on its next apply. Nothing it takes changes.
+
 ## 1.2.2
 
 - The one-time setup waits for its group's rules before it runs, and its group waits

@@ -42,11 +42,33 @@ resource "aws_db_instance" "db" {
   storage_encrypted                   = true
   backup_retention_period             = 1
   deletion_protection                 = false
+  # The database's own log (errors, refused sign-ins, queries that failed) and its
+  # record of sign-ins with an identity that it refused, kept where they can be read
+  # back to the developer.
+  enabled_cloudwatch_logs_exports = keys(local.log_groups)
   # Below staging a change (the size, signing in) applies at once, not at the next
   # maintenance window.
   apply_immediately   = !local.upper_stage
   skip_final_snapshot = true
   tags                = local.tags
+
+  depends_on = [aws_cloudwatch_log_group.db]
+}
+
+# Made before the database, so they are kept as long as the stage keeps logs and go
+# with the database; the database would otherwise make them, kept for ever.
+locals {
+  log_groups = {
+    "postgresql"        = "/aws/rds/instance/${local.full_name}/postgresql"
+    "iam-db-auth-error" = "/aws/rds/instance/${local.full_name}/iam-db-auth-error"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "db" {
+  for_each          = local.log_groups
+  name              = each.value
+  retention_in_days = local.upper_stage ? 365 : 7
+  tags              = local.tags
 }
 
 # What the app needs to sign in: the right to connect as its user with its own
