@@ -2,6 +2,12 @@
 
 Released as `http-api/v<version>` tags. A major version changes what the module takes or gives; read its entry before moving an app to it.
 
+## 1.2.2
+
+- The function gets thirty seconds a request and twice the memory the platform gives
+  by default, so an app's first request, which opens its connections and makes its
+  tables, is not cut off at three. Nothing it takes or gives changes.
+
 ## 1.2.1
 
 - `secret_arns` says it is never a database's master password. Nothing else changes.

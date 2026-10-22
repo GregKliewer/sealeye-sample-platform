@@ -61,6 +61,12 @@ resource "aws_lambda_function" "fn" {
   source_code_hash = filebase64sha256(var.package_path)
   tags             = local.tags
 
+  # The platform's default is three seconds, and an app's first request often has to
+  # open its connections and make its tables: the front door itself waits thirty.
+  # Capacity beyond this is set by a load test, not here.
+  timeout     = 30
+  memory_size = 256
+
   environment {
     variables = var.environment
   }
