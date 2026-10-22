@@ -8,7 +8,29 @@ output "reader_address" {
   value       = aws_rds_cluster.db.reader_endpoint
 }
 
+output "port" {
+  description = "The port the app connects on."
+  value       = aws_rds_cluster.db.port
+}
+
+output "database_name" {
+  description = "The app's own database, made for it when the cluster was made."
+  value       = local.app_database
+}
+
+output "database_user" {
+  description = "The user the app connects as, signing in with its own identity and no password."
+  value       = local.app_user
+}
+
+output "access_policy_arn" {
+  # Only once the user it names exists.
+  depends_on  = [aws_lambda_invocation.setup]
+  description = "Signs in as the app's user: pass it in the app's policy_arns."
+  value       = aws_iam_policy.connect.arn
+}
+
 output "password_secret_arn" {
-  description = "Where the platform keeps the password."
+  description = "Where the platform keeps the master password. For restoring by hand, never for the app."
   value       = aws_rds_cluster.db.master_user_secret[0].secret_arn
 }

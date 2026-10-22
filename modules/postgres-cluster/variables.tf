@@ -39,3 +39,9 @@ variable "instance_class" {
   type        = string
   default     = "db.r6g.large"
 }
+
+variable "permissions_boundary_arn" {
+  description = "The platform's permissions boundary, which every function at Juniper Mutual carries; the one-time setup function carries it too."
+  type        = string
+  default     = null
+}
