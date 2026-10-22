@@ -7,3 +7,8 @@ output "role_name" {
   description = "The function's role, to grant it what it reads and writes."
   value       = aws_iam_role.fn.name
 }
+
+output "log_group" {
+  description = "Where everything the app prints is kept, so the front door can read it back to the developer."
+  value       = aws_cloudwatch_log_group.fn.name
+}
