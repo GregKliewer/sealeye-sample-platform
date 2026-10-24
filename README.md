@@ -26,6 +26,7 @@ and promoted with. App teams build from these and nothing else.
 | `file-bucket` | Files an app keeps, always private |
 | `secrets` | Secrets an app reads while it runs |
 | `logs-and-alarms` | Every app's logs and alarms |
+| `backup-plan` | Daily copies of what an app keeps, from staging up |
 | `cache-redis` | **Deprecated**: not for new apps |
 | `cache-valkey` | A cache |
 
@@ -65,6 +66,10 @@ by its checksum, is promoted one stage at a time (`.github/workflows/app-promote
 2. **sit**, then **uat**: promoted by the team.
 3. **staging**: needs a platform team approval.
 4. **prod**: needs a platform team approval and an approved change ticket.
+
+From staging up, a stage's root module also has a `backup-plan` beside every app that
+keeps a relational database. App teams do not ask for it; the change review stops a
+staging or prod change without it.
 
 **perf** is not on the path. It is built from what is in staging, for a load test, and
 nothing is promoted from it.
